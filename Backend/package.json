@@ -1,0 +1,21 @@
+{
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cros": "^1.0.1",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.1",
+    "socket.io": "^4.7.5",
+    "socketio": "^1.0.0"
+  },
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
