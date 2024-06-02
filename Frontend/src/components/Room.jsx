@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { toast, Toaster } from 'sonner';
+import { FaUser, FaCommentAlt, FaPaperPlane } from 'react-icons/fa';
 
 const Room = () => {
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState([]);
+  const [status, setStatus] = useState('Waiting for other user to join...');
 
-  // Websocket
   const socket = io("http://localhost:3000");
 
   const handleMessageSent = () => {
@@ -17,43 +19,66 @@ const Room = () => {
     }
   };
 
+  socket.on('chat-established', (data) => {
+    console.log(data);
+    setStatus("Users Paired");
+  });
+
   useEffect(() => {
     socket.on('get-msg', (data) => {
       setMessages(prevMessages => [...prevMessages, { type: 'received', content: data }]);
       console.log(`Received: ${data}`);
     });
-
     return () => {
       socket.off('get-msg');
+      socket.off('connected');
     };
   }, [socket]);
 
   return (
-    <>
-      <div className="bg-slate-50 rounded shadow-md h-96 w-[50vw] mx-auto my-10 py-3 px-4">
-        <h3 className='h-18 font-semibold text-lg bg-blue-100 rounded-md mx-5 px-5 py-2'>Waiting For Other User to Join...</h3>
-        <div className="w-full h-full bg-transparent relative mx-auto py-3">
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-800 p-4">
+      <Toaster position='top-center' theme='system' invert/>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg h-[80vh] w-full sm:w-[90vw] md:w-[70vw] lg:w-[50vw] mx-auto my-10 py-6 px-8 flex flex-col">
+        <h3 className="font-semibold text-lg text-blue-600 bg-blue-100 rounded-md p-4 flex items-center">
+          {status === "Users Paired" && <FaUser className="mr-2" />} {status}
+        </h3>
+        <div className="flex-1 overflow-y-auto mt-4 read-only">
           {messages.length > 0 ? (
             messages.map((message, index) => (
-              <p
+              <div
                 key={index}
-                className={`min-h-18 max-w-64 min-w-18 text-jusify my-4 mx-4 text-wrap py-2 rounded-full shadow font-medium bg-${message.type === 'received' ? 'blue-700' : 'blue-100'} text-${message.type === 'received' ? 'white' : 'blue-950'} absolute ${message.type === 'received' ? 'left-0' : 'right-0'} px-5`}
-                style={{ marginTop: `${index === 0 ? 5 : 18}px`, top: `${index * 35}px` }} // Adjust top position and margin-top
+                className={`my-2 p-3 max-w-[70%] rounded-2xl shadow-md relative overflow-hidden break-words ${
+                  message.type === 'received' ? 'bg-blue-600 text-white self-start ml-auto' : 'bg-blue-100 text-blue-800 self-end mr-auto'
+                }`}
               >
                 {message.content}
-              </p>
+              </div>
             ))
           ) : (
-            <p className="text-center text-gray-500 mt-4">No messages found</p>
+            <div className="text-center text-gray-500 mt-4 ">
+              <FaCommentAlt className="mx-auto my-10 text-slate-500 opacity-15 text-4xl font-extra1bold text-center" />
+              <h3 className='px-2 text-slate-500 opacity-15 text-3xl font-semibold text-center'>No Messages Found</h3>
+            </div>
           )}
         </div>
       </div>
-      <div className="bg-slate-100 h-16 w-[45rem] px-4 rounded-md shadow-sm flex gap-4 items-center justify-center mx-auto">
-        <input type="text" className='h-10 w-[40rem] bg-white rounded-md shadow placeholder:font-normal placeholder:indent-5 focus:border-blue-700 outline-none indent-2 font-medium' placeholder='Type Your Text Here' value={msg} onChange={(e) => setMsg(e.target.value)} />
-        <button className='bg-blue-500 h-10 w-16 rounded-md shadow-md text-white font-medium' onClick={handleMessageSent}>Send</button>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md w-full sm:w-[90vw] md:w-[70vw] lg:w-[50vw] mx-auto p-4 flex gap-4 items-center">
+        <input
+          type="text"
+          className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-4 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Type your message..."
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+        />
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg p-4 shadow-md flex items-center"
+          onClick={handleMessageSent}
+        >
+          <FaPaperPlane className="text-xl" />
+        </button>
       </div>
-    </>
-  )
+    </div>
+  );
 }
 
 export default Room;
